@@ -1,19 +1,10 @@
-import React, { Suspense } from 'react';
-
 import { NavLink } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValueLoadable } from 'recoil';
 
 import { makeStyles, useMediaQuery, useTheme } from '@material-ui/core';
-import { Skeleton } from '@material-ui/lab';
 
-import {
-  AccountInfo,
-  ConnectWalletButton,
-  ReceiveInfo,
-  MyAvatarMenu,
-} from 'components';
-import { useSelectedCircleEpoch, useMe, useCircle } from 'hooks';
-import { rMyAddress } from 'recoilState';
+import { WalletButton, ReceiveInfo, MyAvatarMenu } from 'components';
+import { rMyProfile, useSelectedCircleState } from 'recoilState';
 import { getMainNavigation, checkActive } from 'routes/paths';
 
 const useStyles = makeStyles(theme => ({
@@ -24,12 +15,6 @@ const useStyles = makeStyles(theme => ({
     background: theme.colors.primary,
     gridTemplateColumns: '1fr 1fr 1fr',
     padding: theme.spacing(0, 5),
-    [theme.breakpoints.down('xs')]: {
-      padding: theme.spacing(0, 2, 4),
-      height: theme.custom.appHeaderHeight + 32,
-      gridTemplateColumns: '1fr 8fr',
-      zIndex: 2,
-    },
     '& > *': {
       alignSelf: 'center',
     },
@@ -38,6 +23,12 @@ const useStyles = makeStyles(theme => ({
     },
     '& .MuiSkeleton-rect': {
       borderRadius: 5,
+    },
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(0, 2, 4),
+      height: theme.custom.appHeaderHeight + 32,
+      gridTemplateColumns: '1fr 8fr',
+      zIndex: 2,
     },
   },
   coordinapeLogo: {
@@ -49,7 +40,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       justifySelf: 'end',
     },
   },
@@ -58,7 +49,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'flex-end',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       position: 'absolute',
       width: '100%',
       background: theme.colors.primary,
@@ -114,108 +105,72 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const HeaderNav = () => {
-  const classes = useStyles();
-  const { selectedCircle } = useCircle();
-  const { selectedMyUser, hasAdminView } = useMe();
-
-  const navButtonsVisible = !!selectedMyUser || hasAdminView;
-  const navItems = getMainNavigation({
-    asCircleAdmin: selectedMyUser && selectedMyUser.role !== 0,
-    asVouchingEnabled: selectedCircle && selectedCircle.vouching !== 0,
-  });
-  return (
-    <div className={classes.navLinks}>
-      {navButtonsVisible &&
-        navItems.map(navItem => (
-          <NavLink
-            className={classes.navLink}
-            isActive={(nothing, location) =>
-              checkActive(location.pathname, navItem)
-            }
-            key={navItem.path}
-            to={navItem.path}
-          >
-            {navItem.label}
-          </NavLink>
-        ))}
-    </div>
-  );
-};
-
-export const HeaderButtons = () => {
-  const classes = useStyles();
-
-  const myAddress = useRecoilValue(rMyAddress);
-  const { epochIsActive } = useSelectedCircleEpoch();
-
-  return !myAddress ? (
-    <div className={classes.buttons}>
-      <ConnectWalletButton />
-    </div>
-  ) : (
-    <div className={classes.buttons}>
-      {epochIsActive ? <ReceiveInfo /> : ''}
-      <AccountInfo />
-      <MyAvatarMenu />
-    </div>
-  );
-};
-
 export const MainHeader = () => {
   const theme = useTheme();
   const classes = useStyles();
+  const screenDownSm = useMediaQuery(theme.breakpoints.down('sm'));
+  // TODO: Implment a hamburger menu
+  // const screenDownXs = useMediaQuery(theme.breakpoints.down('xs'));
 
-  const screenDownXs = useMediaQuery(theme.breakpoints.down('xs'));
+  // useRecoilValue suspends when the value isn't ready, here we can
+  // use the loadable to control appearance. See ConnectWalletModal
+  // and
+  // const addressReady = useRecoilValueLoadable(rMyAddress).state === 'hasValue';
+  const profileReady = useRecoilValueLoadable(rMyProfile).state === 'hasValue';
 
-  const suspendedNav = (
-    <Suspense
-      fallback={
-        <div className={classes.navLinks}>
-          <Skeleton width={100} height={20} />
-          <Skeleton width={100} height={20} />
-        </div>
-      }
-    >
-      <HeaderNav />
-    </Suspense>
-  );
-
-  const suspendedButtons = (
-    <Suspense
-      fallback={
-        <div className={classes.buttons}>
-          <Skeleton variant="rect" width={80} height={32} />
-          <Skeleton variant="rect" width={130} height={32} />
-          <Skeleton variant="circle" width={50} height={50} />
-        </div>
-      }
-    >
-      <HeaderButtons />
-    </Suspense>
-  );
-
-  return !screenDownXs ? (
+  return (
     <div className={classes.root}>
       <img
         alt="logo"
         className={classes.coordinapeLogo}
         src="/svgs/logo/logo.svg"
       />
-      {suspendedNav}
-      {suspendedButtons}
+      {screenDownSm ? (
+        <div className={classes.smallNavAndButtons}>
+          <div className={classes.buttons}>
+            {profileReady && <ReceiveInfo />}
+            <WalletButton />
+            {profileReady && <MyAvatarMenu />}
+          </div>
+          {profileReady && <HeaderNav />}
+        </div>
+      ) : (
+        <>
+          {profileReady && <HeaderNav />}
+          <div className={classes.buttons}>
+            {profileReady && <ReceiveInfo />}
+            <WalletButton />
+            {profileReady && <MyAvatarMenu />}
+          </div>
+        </>
+      )}
     </div>
-  ) : (
-    <div className={classes.root}>
-      <img
-        alt="logo"
-        className={classes.coordinapeLogo}
-        src="/svgs/logo/logo.svg"
-      />
-      <div className={classes.smallNavAndButtons}>
-        {suspendedButtons}
-        {suspendedNav}
-      </div>
+  );
+};
+
+export const HeaderNav = () => {
+  const classes = useStyles();
+  const { circle, myUser } = useSelectedCircleState();
+
+  const navItems = getMainNavigation({
+    asCircleAdmin: myUser.isCircleAdmin,
+    asVouchingEnabled: circle.hasVouching,
+  });
+
+  return (
+    <div className={classes.navLinks}>
+      {navItems.map(navItem => (
+        <NavLink
+          className={classes.navLink}
+          isActive={(nothing, location) =>
+            checkActive(location.pathname, navItem)
+          }
+          key={navItem.path}
+          to={navItem.path}
+        >
+          {navItem.label}
+        </NavLink>
+      ))}
     </div>
   );
 };

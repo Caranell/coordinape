@@ -1,4 +1,4 @@
-export const updaterMergeToIdMap = <V extends { id: number }>(
+export const updaterIdMerge = <V extends { id: number }>(
   newValue: V | V[],
   updateWith: (update: (oldValue: Map<number, V>) => Map<number, V>) => void
 ) => {
@@ -13,7 +13,7 @@ export const updaterMergeToIdMap = <V extends { id: number }>(
   });
 };
 
-export const updaterMergeToAddressMap = <V extends { address: string }>(
+export const updaterAddressMerge = <V extends { address: string }>(
   newValue: V | V[],
   updateWith: (update: (oldValue: Map<string, V>) => Map<string, V>) => void
 ) => {

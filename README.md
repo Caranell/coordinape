@@ -62,7 +62,6 @@ Bootstrapped with [Create React App](https://github.com/facebook/create-react-ap
 - ethers
 - axios
 - Luxon
-  - Prefered over deprecated momentum for timezone support
 - Sentry (error reporting)
 - d3-force-3d
   - See forked `canvas-color-tracker` for brave compatibility

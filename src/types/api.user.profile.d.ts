@@ -1,5 +1,5 @@
 import { ITokenGift } from './api.gift';
-import { IApiCircle } from './api.circle';
+import { IApiCircle, ICircle } from './api.circle';
 
 export interface IApiProfile {
   id: number;
@@ -59,9 +59,12 @@ export interface IApiFilledProfile extends IApiProfile {
 }
 
 // This is created on the front end
-export interface IMyUsers extends IApiUserProfile {
-  circle: IApiCircle;
-  teammates: IApiUser[];
+export interface IMyUser extends IApiUserProfile {
+  circle: ICircle;
+  teammates: IUser[];
+  // TODO:
+  isCircleAdmin: boolean;
+  isCoordinapeUser: boolean;
 }
 
 // These are just wrappers, nothing extended currently:

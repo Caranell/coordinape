@@ -13,11 +13,7 @@ import {
 } from 'components';
 import CreateCircleForm from 'forms/CreateCircleForm';
 import { useApi } from 'hooks';
-import {
-  useMyAddress,
-  useMyAdminCircles,
-  useSetSelectedCircleId,
-} from 'recoilState';
+import { useProfileState, useBaseState } from 'recoilState';
 import * as paths from 'routes/paths';
 
 const useStyles = makeStyles(theme => ({
@@ -82,17 +78,21 @@ export const SummonCirclePage = () => {
   const classes = useStyles();
   const history = useHistory();
 
-  const myAddress = useMyAddress();
-  const myAdminCircles = useMyAdminCircles();
-  const setSelectedCircleId = useSetSelectedCircleId();
+  const {
+    myProfile: { address: myAddress },
+    myUsers,
+  } = useProfileState();
+  const { selectCircle } = useBaseState();
 
   const protocols = useMemo(
     () =>
       uniqBy(
-        myAdminCircles.map(({ protocol }) => protocol),
+        myUsers
+          .filter(u => u.isCircleAdmin)
+          .map(({ circle: { protocol } }) => protocol),
         'id'
       ),
-    [myAdminCircles]
+    [myUsers]
   );
 
   const { createCircle } = useApi();
@@ -135,7 +135,7 @@ export const SummonCirclePage = () => {
                 ...params,
               })
             );
-            setSelectedCircleId(newCircle.id);
+            selectCircle(newCircle.id);
             history.push({
               pathname: paths.getAdminPath(),
               search: paths.NEW_CIRCLE_CREATED_PARAMS,
@@ -166,7 +166,7 @@ export const SummonCirclePage = () => {
                 label="Circle Name"
                 fullWidth
               />
-              {myAdminCircles.length ? (
+              {protocols.length ? (
                 <FormAutocomplete
                   {...fields.protocol_name}
                   value={fields.protocol_name.value}

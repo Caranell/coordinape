@@ -12,13 +12,12 @@ import {
 } from '@material-ui/core';
 
 import {
-  useSelectedCircleEpoch,
-  useMe,
   useApi,
   useSelectedAllocation,
   useSelectedAllocationController,
 } from 'hooks';
 import { BalanceIcon } from 'icons';
+import { useSelectedCircleState } from 'recoilState';
 import {
   STEP_MY_EPOCH,
   STEP_MY_TEAM,
@@ -154,8 +153,12 @@ export const AllocationPage = () => {
     saveGifts,
     saveTeammates,
   } = useSelectedAllocation();
-  const { epochIsActive } = useSelectedCircleEpoch();
-  const { selectedMyUser, selectedCircle } = useMe();
+  const {
+    myUser: selectedMyUser,
+    circle: selectedCircle,
+    circleEpochsStatus: { epochIsActive },
+  } = useSelectedCircleState();
+
   const { updateMyUser } = useApi();
   const allSteps = selectedCircle?.team_selection === 0 ? NO_TEAM_STEPS : STEPS;
   const fixedNonReceiver = selectedMyUser?.fixed_non_receiver !== 0;

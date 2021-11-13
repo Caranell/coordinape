@@ -10,6 +10,7 @@ import {
   rCirclesMap,
   rSelectedCircle,
   rSelectedMyUser,
+  rNomineesRaw,
   useTriggerProfileReload,
 } from 'recoilState';
 import { getApiService } from 'services/api';
@@ -17,7 +18,12 @@ import { createCircleWithDefaults } from 'utils/modelExtenders';
 
 import { useAsyncLoadCatch } from './useAsyncLoadCatch';
 
-import { CreateCircleParam, PutUsersParam, PostProfileParam } from 'types';
+import {
+  CreateCircleParam,
+  PutUsersParam,
+  PostProfileParam,
+  NominateUserParam,
+} from 'types';
 
 export const useApi = () => {
   const api = getApiService();
@@ -25,6 +31,8 @@ export const useApi = () => {
 
   const updateCirclesMap = useSetRecoilState(rCirclesMap);
   const triggerProfileReload = useTriggerProfileReload();
+
+  const updateNomineesMap = useSetRecoilState(rNomineesRaw);
 
   const getAddress = useRecoilCallback(
     ({ snapshot }: CallbackInterface) =>
@@ -138,11 +146,60 @@ export const useApi = () => {
       return result;
     });
 
+  const nominateUser = async (params: NominateUserParam) =>
+    callWithLoadCatch(
+      async () => {
+        const selectedCircle = await getSelectedCircle();
+        const selectedMyUser = await getSelectedMyUser();
+        if (!selectedMyUser || !selectedCircle) {
+          throw 'Need to select a circle to nominate';
+        }
+        const newNominee = await api.nominateUser(
+          selectedCircleId,
+          myAddress,
+          params
+        );
+
+        updateNomineesMap(
+          oldMap => new Map(oldMap.set(newNominee.id, newNominee))
+        );
+
+        return newNominee;
+      },
+      { hideLoading: true }
+    );
+
+  const vouchUser = async (nominee_id: number) =>
+    callWithLoadCatch(
+      async () => {
+        const selectedCircle = await getSelectedCircle();
+        const selectedMyUser = await getSelectedMyUser();
+        if (!selectedMyUser || !selectedCircle) {
+          throw 'Need to select a circle to nominate';
+        }
+
+        const newNominee = await api.vouchUser(
+          selectedCircleId,
+          myAddress,
+          nominee_id
+        );
+
+        updateNomineesMap(
+          oldMap => new Map(oldMap.set(newNominee.id, newNominee))
+        );
+
+        return newNominee;
+      },
+      { hideLoading: true }
+    );
+
   return {
     createCircle,
     updateMyUser,
     updateAvatar,
     updateBackground,
     updateMyProfile,
+    nominateUser,
+    vouchUser,
   };
 };

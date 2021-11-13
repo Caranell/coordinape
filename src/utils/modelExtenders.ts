@@ -1,6 +1,5 @@
 import iti from 'itiriri';
 import { DateTime } from 'luxon';
-import moment from 'moment';
 
 import {
   IEpoch,
@@ -212,11 +211,13 @@ export const createExtendedNominee = (
   nominee: IApiNominee,
   usersMap: Map<number, IUser>
 ): INominee => {
+  const expiryDate = DateTime.fromISO(nominee.expiry_date);
   return {
     ...nominee,
     ended: nominee.ended === 1,
-    expiryDate: moment.utc(nominee.expiry_date),
-    nominatedDate: moment.utc(nominee.nominated_date),
+    expired: expiryDate.diffNow().milliseconds < 0,
+    expiryDate,
+    nominatedDate: DateTime.fromISO(nominee.nominated_date),
     // TODO: Exrhizo: I mentioned to Zashton we might only send ids,
     // this way the profile is included without extra joins.
     nominations: nominee.nominations

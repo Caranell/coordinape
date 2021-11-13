@@ -1,6 +1,6 @@
-import { useRecoilState, useSetRecoilState, RecoilState } from 'recoil';
+import { useSetRecoilState, RecoilState } from 'recoil';
 
-import { rFetchedAt } from 'recoilState';
+import { useFetchedAt } from 'recoilState';
 
 const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 Minutes
 
@@ -8,7 +8,6 @@ const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 Minutes
 // errors get sent to the error boundary. Two provide a reusable way to cache
 // results, until a certain amount of time has passed.
 export const useRecoilFetcher = <K, V>(
-  key: string,
   recoilState: RecoilState<Map<K, V>>,
   updater: (
     newValue: V | V[],
@@ -19,7 +18,7 @@ export const useRecoilFetcher = <K, V>(
   args?: any[],
   reset?: boolean
 ) => Promise<[() => void, R | undefined]>) => {
-  const [fetchedAt, updateFetchedAt] = useRecoilState(rFetchedAt(key));
+  const [fetchedAt, updateFetchedAt] = useFetchedAt(recoilState.key);
   const updateValue = useSetRecoilState(recoilState);
 
   return async <R extends V | V[]>(

@@ -13,14 +13,14 @@ import {
 import { getAvatarPathWithFallback } from 'utils/domain';
 import { toSearchRegExp, assertDef } from 'utils/tools';
 
+import { rGiftsByEpoch } from './allocationState';
 import {
-  rGiftsByEpoch,
   rSelectedCircleId,
   rCircleEpochsStatus,
   rUsersMap,
   rGiftsMap,
-  rCircles,
-} from './appState';
+  rCirclesMap,
+} from './baseState';
 
 import {
   IRecoilGetParams,
@@ -91,7 +91,7 @@ export const rUserMapWithFakes = selector<Map<number, IUser>>({
   get: ({ get }: IRecoilGetParams) => {
     const usersMap = get(rUsersMap);
     const updated = new Map(usersMap);
-    get(rCircles)
+    iti(get(rCirclesMap).values())
       .map(c => createFakeUser(c.id))
       .forEach(u => updated.set(u.id, u));
 

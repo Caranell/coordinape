@@ -14,12 +14,7 @@ import {
 import { USER_ROLE_ADMIN, USER_ROLE_COORDINAPE } from 'config/constants';
 import { useNavigation, useAdminApi } from 'hooks';
 import { DeleteIcon, EditIcon, PlusCircleIcon } from 'icons';
-import {
-  useSelectedCircle,
-  useSelectedMyUser,
-  useSelectedCircleUsers,
-  useSelectedCircleEpochs,
-} from 'recoilState';
+import { useSelectedCircleState } from 'recoilState';
 import { NEW_CIRCLE_CREATED_PARAMS } from 'routes/paths';
 import * as paths from 'routes/paths';
 import { shortenAddress } from 'utils';
@@ -208,10 +203,13 @@ const AdminPage = ({ legacy }: { legacy?: boolean }) => {
   const { getToProfile } = useNavigation();
 
   const { deleteUser, deleteEpoch } = useAdminApi();
-  const me = useSelectedMyUser();
-  const selectedCircle = useSelectedCircle();
-  const visibleUsers = useSelectedCircleUsers();
-  const epochsReverse = useSelectedCircleEpochs();
+
+  const {
+    myUser: me,
+    users: visibleUsers,
+    circle: selectedCircle,
+    circleEpochsStatus: { epochs: epochsReverse },
+  } = useSelectedCircleState();
 
   const epochs = useMemo(() => [...epochsReverse].reverse(), [epochsReverse]);
 
